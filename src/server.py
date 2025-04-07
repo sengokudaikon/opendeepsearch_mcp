@@ -155,7 +155,7 @@ async def _perform_search(
             agent = OpenDeepSearchAgent(**agent_config)
 
             # Call the 'ask' method with its specific arguments
-            result = await agent.ask(
+            result_dict = await agent.ask(
                 query=query,
                 max_sources=max_sources,
                 pro_mode=pro_mode
@@ -175,7 +175,42 @@ async def _perform_search(
         if captured_text:
             logger.debug(f"Captured output during search: {captured_text}")
 
-        return str(result) # Ensure result is a string
+        # Extract answer and sources
+        answer = result_dict.get("answer", "No answer found.")
+        sources = result_dict.get("sources", [])
+
+        logger.info(f"Received answer length: {len(answer)} characters")
+        logger.info(f"Received {len(sources)} sources.")
+        logger.debug(f"Answer preview: {answer[:200]}...")
+        logger.debug(f"Sources preview: {sources[:2]}") # Log first 2 sources for preview
+
+        # Format the output as markdown
+        markdown_parts = [answer]
+        if sources:
+            markdown_parts.append("\n\n---\n**Sources:**")
+            for i, source in enumerate(sources):
+                title = source.get('title', 'N/A')
+                link = source.get('link', 'N/A')
+                # Prefer 'html', fallback to 'snippet', then 'N/A'
+                content = source.get('html') or source.get('snippet', 'N/A')
+                # Basic truncation for preview in logs/output if needed, but keep full content for now
+                # content_preview = (content[:150] + '...') if len(content) > 150 else content
+
+                markdown_parts.append(
+                    f"{i+1}. **Title:** {title}\n"
+                    f"   **Link:** {link}\n"
+                    # f"   **Content:** {content_preview}" # Use full content for now
+                    f"   **Content:** {content}"
+                )
+        else:
+            # Append "No sources found" if the sources list is empty
+            markdown_parts.append("\n\n---\n**Sources:**\nNo sources found.")
+        formatted_markdown = "\n".join(markdown_parts)
+
+        logger.info(f"Formatted markdown length: {len(formatted_markdown)} characters")
+        logger.info(f"Formatted markdown preview: {formatted_markdown[:200]}...")
+
+        return formatted_markdown
     except Exception as e:
         # Restore original environment variables in case of exception
         import os
@@ -205,8 +240,9 @@ async def call_mcp_tool(name: str, arguments: Dict[str, Any]) -> List[types.Text
     try:
         if name == "perform_search":
             result_text = await _perform_search(**arguments)
+            logger.info(f"Returning result to MCP client. Result type: {type(result_text)}")
+            logger.info(f"First 100 chars of result: {result_text[:100]}...")
             return [types.TextContent(type="text", text=result_text)]
-        # Removed elif blocks for build_search_context and get_raw_search_results
         else:
             logger.error(f"Unknown tool called: {name}")
             return [types.TextContent(type="text", text=f"Error: Unknown tool: {name}")]
