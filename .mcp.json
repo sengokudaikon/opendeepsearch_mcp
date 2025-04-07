@@ -1,0 +1,45 @@
+{
+  "mcpServers": {
+    "opendeepsearch": {
+      "enabled": true,
+      "alwaysAllow": ["*"],
+      "command": "uvx",
+      "args": [
+        "opendeepsearch-mcp"
+      ],
+      "env": {
+
+        "OPENAI_API_KEY": "${OPENAI_API_KEY}",
+        "OPENAI_BASE_URL": "${OPENAI_BASE_URL}",
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}",
+        "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
+        "FIREWORKS_API_KEY": "${FIREWORKS_API_KEY}",
+        "GEMINI_API_KEY": "${GEMINI_API_KEY}",
+        "DEEPSEEK_API_KEY": "${DEEPSEEK_API_KEY}",
+
+
+        "AZURE_API_KEY": "${AZURE_API_KEY}",
+        "AZURE_API_BASE": "${AZURE_API_BASE}",
+        "AZURE_API_VERSION": "${AZURE_API_VERSION}",
+        "AZURE_DEPLOYMENT_ID": "${AZURE_DEPLOYMENT_ID}",
+
+
+        "SERPER_API_KEY": "${SERPER_API_KEY}",
+        "SEARXNG_INSTANCE_URL": "${SEARXNG_INSTANCE_URL}",
+        "SEARXNG_API_KEY": "${SEARXNG_API_KEY}",
+
+
+        "JINA_API_KEY": "${JINA_API_KEY}",
+        "WOLFRAM_ALPHA_APP_ID": "${WOLFRAM_ALPHA_APP_ID}",
+
+        "LITELLM_MODEL_ID": "${LITELLM_MODEL_ID}",
+        "LITELLM_SEARCH_MODEL_ID": "${LITELLM_SEARCH_MODEL_ID}",
+        "LITELLM_ORCHESTRATOR_MODEL_ID": "${LITELLM_ORCHESTRATOR_MODEL_ID}",
+        "LITELLM_EVAL_MODEL_ID": "${LITELLM_EVAL_MODEL_ID}",
+
+
+        "LOG_LEVEL": "INFO"
+      }
+    }
+  }
+}
