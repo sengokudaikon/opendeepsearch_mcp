@@ -98,6 +98,7 @@ startCommand:
     })
 
 # Optional: Build configuration if needed (e.g., for Docker)
-# build:
-#   dockerfile: Dockerfile
+build:
+  baseImage: python:3.11-slim
+  # dockerfile: Dockerfile # Use baseImage instead for simplicity
 #   dockerBuildPath: .
