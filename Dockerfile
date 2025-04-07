@@ -20,8 +20,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN --mount=type=cache,target=/root/.cache/uv \
     . .venv/bin/activate && \
     grep -v "torch" uv.lock > uv-without-torch.lock && \
-    uv pip install --no-deps -r uv-without-torch.lock && \
-    uv pip install --no-deps torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu && \
+    grep -v "numpy" uv-without-torch.lock > uv-without-torch-numpy.lock && \
+    uv pip install --no-deps -r uv-without-torch-numpy.lock && \
+    uv pip install --no-deps numpy==1.26.4 && \
+    uv pip install --no-deps torch==2.1.0 --index-url https://download.pytorch.org/whl/cpu && \
     uv pip install --no-deps -e .
 
 # Final stage
