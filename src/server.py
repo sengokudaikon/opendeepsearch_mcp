@@ -8,14 +8,12 @@ from mcp.server import Server, NotificationOptions
 from mcp.server.models import InitializationOptions
 from opendeepsearch.ods_agent import OpenDeepSearchAgent
 
-# --- Basic Logging Setup ---
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger("opendeepsearch_mcp")
 
-# --- MCP Server Setup ---
 mcp = Server("opendeepsearch")
 
 @mcp.list_tools()
@@ -78,7 +76,7 @@ async def list_mcp_tools() -> List[types.Tool]:
                 },
                 "required": ["query"]
             }
-        ) # End of perform_search tool definition
+        )
     ]
 
 async def _perform_search(
@@ -103,21 +101,19 @@ async def _perform_search(
         "pro_mode": pro_mode,
         "model": model,
         "search_provider": search_provider,
-        "reranker": reranker,
-        # Omit API keys and sensitive information from logs
+        "reranker": reranker
     }
-    # Filter out None values for cleaner logging
     log_args = {k: v for k, v in log_args.items() if v is not None}
     logger.info(f"Performing search with args: {log_args}")
 
-    # Capture stdout to prevent print statements from breaking the MCP protocol
+
     import io
     from contextlib import redirect_stdout
 
     captured_output = io.StringIO()
 
     try:
-        # Set environment variables for API keys if provided
+
         import os
         original_env = {}
         env_vars_to_set = {}
@@ -131,16 +127,13 @@ async def _perform_search(
         if jina_api_key:
             env_vars_to_set['JINA_API_KEY'] = jina_api_key
 
-        # Save original environment variables
         for key in env_vars_to_set:
             if key in os.environ:
                 original_env[key] = os.environ[key]
-
-        # Set temporary environment variables
         for key, value in env_vars_to_set.items():
             os.environ[key] = value
 
-        # Instantiate the agent, passing relevant arguments if provided by the client
+
         agent_config = {}
         if model: agent_config['model'] = model
         if search_provider: agent_config['search_provider'] = search_provider
@@ -150,18 +143,18 @@ async def _perform_search(
         if searxng_instance_url: agent_config['searxng_instance_url'] = searxng_instance_url
         if searxng_api_key: agent_config['searxng_api_key'] = searxng_api_key
 
-        # Redirect stdout to capture print statements
+
         with redirect_stdout(captured_output):
             agent = OpenDeepSearchAgent(**agent_config)
 
-            # Call the 'ask' method with its specific arguments
+
             result_dict = await agent.ask(
                 query=query,
                 max_sources=max_sources,
                 pro_mode=pro_mode
             )
 
-        # Restore original environment variables
+
         for key in env_vars_to_set:
             if key in original_env:
                 os.environ[key] = original_env[key]
@@ -170,40 +163,36 @@ async def _perform_search(
 
         logger.info(f"Search completed successfully for query: '{query}'")
 
-        # Include any captured output in the debug logs
+
         captured_text = captured_output.getvalue()
         if captured_text:
             logger.debug(f"Captured output during search: {captured_text}")
 
-        # Extract answer and sources
+
         answer = result_dict.get("answer", "No answer found.")
         sources = result_dict.get("sources", [])
 
         logger.info(f"Received answer length: {len(answer)} characters")
         logger.info(f"Received {len(sources)} sources.")
         logger.debug(f"Answer preview: {answer[:200]}...")
-        logger.debug(f"Sources preview: {sources[:2]}") # Log first 2 sources for preview
+        logger.debug(f"Sources preview: {sources[:2]}")
 
-        # Format the output as markdown
+
         markdown_parts = [answer]
         if sources:
             markdown_parts.append("\n\n---\n**Sources:**")
             for i, source in enumerate(sources):
                 title = source.get('title', 'N/A')
                 link = source.get('link', 'N/A')
-                # Prefer 'html', fallback to 'snippet', then 'N/A'
                 content = source.get('html') or source.get('snippet', 'N/A')
-                # Basic truncation for preview in logs/output if needed, but keep full content for now
-                # content_preview = (content[:150] + '...') if len(content) > 150 else content
 
                 markdown_parts.append(
                     f"{i+1}. **Title:** {title}\n"
                     f"   **Link:** {link}\n"
-                    # f"   **Content:** {content_preview}" # Use full content for now
                     f"   **Content:** {content}"
                 )
         else:
-            # Append "No sources found" if the sources list is empty
+
             markdown_parts.append("\n\n---\n**Sources:**\nNo sources found.")
         formatted_markdown = "\n".join(markdown_parts)
 
@@ -212,7 +201,7 @@ async def _perform_search(
 
         return formatted_markdown
     except Exception as e:
-        # Restore original environment variables in case of exception
+
         import os
         for key in env_vars_to_set:
             if key in original_env:
@@ -222,15 +211,13 @@ async def _perform_search(
 
         logger.exception(f"Error during perform_search for query '{query}': {e}")
 
-        # Include any captured output in the error message
+
         captured_text = captured_output.getvalue()
         if captured_text:
             logger.debug(f"Captured output during error: {captured_text}")
             return f"Error performing search: {e}\n\nDebug output: {captured_text}"
         else:
             return f"Error performing search: {e}"
-# Removed placeholder functions _build_search_context and _get_raw_search_results
-
 
 
 @mcp.call_tool()
@@ -268,12 +255,10 @@ async def main():
         action="store_true",
         help="Use the active Python environment",
     )
-    # Parse known args to ignore any additional arguments passed by the MCP inspector
+
     args, _ = parser.parse_known_args()
 
-    # Update logging level based on arguments
     log_level = getattr(logging, args.log_level.upper(), logging.INFO)
-    # Set level for our specific logger and potentially the root logger if desired
     logger.setLevel(log_level)
     logger.info(f"Setting log level to {args.log_level.upper()}")
 
