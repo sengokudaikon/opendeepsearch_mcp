@@ -1,0 +1,103 @@
+# Smithery configuration file for opendeepsearch-mcp
+# Docs: https://smithery.ai/docs/config#smitheryyaml
+
+startCommand:
+  type: stdio
+  configSchema:
+    # JSON Schema defining the configuration options for the MCP.
+    type: object
+    # No hard requirements here, as the necessary keys depend on the chosen LLM/Search/Reranker providers.
+    # The server relies on LiteLLM which checks standard environment variables.
+    # At least one LLM provider key (OpenAI, Anthropic, OpenRouter, Fireworks) is needed.
+    required: []
+    properties:
+      # LLM Provider Keys (Provide at least one)
+      openaiApiKey:
+        type: string
+        description: "Optional: API key for OpenAI LLM."
+      openaiBaseUrl:
+        type: string
+        description: "Optional: Custom base URL for OpenAI compatible endpoints."
+      anthropicApiKey:
+        type: string
+        description: "Optional: API key for Anthropic LLM."
+      openrouterApiKey:
+        type: string
+        description: "Optional: API key for OpenRouter."
+      fireworksApiKey:
+        type: string
+        description: "Optional: API key for Fireworks AI."
+      geminiApiKey:
+        type: string
+        description: "Optional: API key for Google Gemini."
+      azureApiKey:
+        type: string
+        description: "Optional: API key for Azure OpenAI."
+      azureApiBase:
+        type: string
+        description: "Optional: API base URL for Azure OpenAI."
+      azureApiVersion:
+        type: string
+        description: "Optional: API version for Azure OpenAI."
+      azureDeploymentId:
+        type: string
+        description: "Optional: Deployment ID for Azure OpenAI."
+      deepseekApiKey:
+        type: string
+        description: "Optional: API key for DeepSeek."
+      # Search Provider Keys
+      serperApiKey:
+        type: string
+        description: "Optional: API key for Serper search provider (required if search_provider='serper')."
+      searxngInstanceUrl:
+        type: string
+        description: "Optional: URL of the SearXNG instance (required if search_provider='searxng')."
+      searxngApiKey:
+        type: string
+        description: "Optional: API key for the SearXNG instance."
+      jinaApiKey:
+        type: string
+        description: "Optional: API key for Jina reranker (required if reranker='jina')."
+      # Other Optional Keys
+      wolframAlphaAppId:
+        type: string
+        description: "Optional: App ID for WolframAlpha tool (if used)."
+      logLevel:
+        type: string
+        enum: ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
+        default: "INFO"
+        description: "Optional: Set the logging level for the server."
+  commandFunction:
+    # A function that produces the CLI command to start the MCP on stdio.
+    |-
+    (config) => ({
+        command: 'uv',
+        args: ['run', 'opendeepsearch-mcp', '--log-level', config.logLevel || 'INFO'],
+        env: {
+            # Pass all configured keys as environment variables
+            # LiteLLM and OpenDeepSearchAgent will pick up the relevant ones.
+            OPENAI_API_KEY: config.openaiApiKey,
+            OPENAI_BASE_URL: config.openaiBaseUrl,
+            ANTHROPIC_API_KEY: config.anthropicApiKey,
+            OPENROUTER_API_KEY: config.openrouterApiKey,
+            FIREWORKS_API_KEY: config.fireworksApiKey,
+            SERPER_API_KEY: config.serperApiKey,
+            SEARXNG_INSTANCE_URL: config.searxngInstanceUrl,
+            SEARXNG_API_KEY: config.searxngApiKey,
+            JINA_API_KEY: config.jinaApiKey,
+            WOLFRAM_ALPHA_APP_ID: config.wolframAlphaAppId,
+            # Add new provider keys
+            GEMINI_API_KEY: config.geminiApiKey,
+            AZURE_API_KEY: config.azureApiKey,
+            AZURE_API_BASE: config.azureApiBase,
+            AZURE_API_VERSION: config.azureApiVersion,
+            AZURE_DEPLOYMENT_ID: config.azureDeploymentId,
+            DEEPSEEK_API_KEY: config.deepseekApiKey
+            // LOG_LEVEL is passed as a CLI argument
+        }
+    })
+
+# Optional: Build configuration if needed (e.g., for Docker)
+# build:
+#   dockerfile: Dockerfile
+#   dockerBuildPath: .

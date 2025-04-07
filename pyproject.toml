@@ -9,6 +9,10 @@ dependencies = [
     "opendeepsearch @ git+https://github.com/sentient-agi/OpenDeepSearch.git",
     "mcp==1.5.0",
     "nest_asyncio>=1.5.6",
+    "torch",
+    "loguru",
+    "transformers>=4.49.0",
+    "openai>=1.66.2",
 ]
 
 [build-system]
@@ -25,3 +29,12 @@ packages = ["src"]
 # Script entry point
 [project.scripts]
 opendeepsearch-mcp = "src:main"
+
+[project.optional-dependencies]
+test = [
+    "pytest",
+    "pytest-asyncio",
+    "pytest-mock",
+]
+
+# [tool.pytest.ini_options] setting removed as potentially conflicting
