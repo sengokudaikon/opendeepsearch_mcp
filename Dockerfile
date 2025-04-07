@@ -11,11 +11,17 @@ RUN pip install uv==0.2.5 && \
 COPY pyproject.toml README.md ./
 COPY src ./src
 
-# Generate lock file and install dependencies
+# Generate lock file and install dependencies in smaller chunks to avoid disk space issues
 RUN --mount=type=cache,target=/root/.cache/uv \
     . .venv/bin/activate && \
-    uv pip compile pyproject.toml -o uv.lock && \
-    uv pip install --no-deps -r uv.lock && \
+    uv pip compile pyproject.toml -o uv.lock
+
+# Install dependencies in smaller chunks to avoid disk space issues
+RUN --mount=type=cache,target=/root/.cache/uv \
+    . .venv/bin/activate && \
+    grep -v "torch" uv.lock > uv-without-torch.lock && \
+    uv pip install --no-deps -r uv-without-torch.lock && \
+    uv pip install --no-deps torch==2.1.2 --index-url https://download.pytorch.org/whl/cpu && \
     uv pip install --no-deps -e .
 
 # Final stage
