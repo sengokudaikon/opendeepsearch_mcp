@@ -100,4 +100,4 @@ startCommand:
 # Optional: Build configuration if needed (e.g., for Docker)
 build:
   dockerfile: Dockerfile
-#   dockerBuildPath: .
+  dockerBuildPath: .
